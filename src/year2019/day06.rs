@@ -9,8 +9,12 @@ pub fn run() {
             [parts.next().unwrap(), parts.next().unwrap()]
         })
         .collect();
-    println!("year2019 day06 part1 {}", part1(&pairs));
-    println!("year2019 day06 part2 {}", part2(&pairs));
+    let orbits = pairs
+        .iter()
+        .map(|&[center, satellite]| (satellite, center))
+        .collect::<HashMap<_, _>>();
+    println!("year2019 day06 part1 {}", part1(&pairs, &orbits));
+    println!("year2019 day06 part2 {}", part2(&orbits));
 }
 
 fn distance<'a>(
@@ -27,11 +31,7 @@ fn distance<'a>(
     }
 }
 
-fn part1(pairs: &[[&str; 2]]) -> usize {
-    let orbits = pairs
-        .iter()
-        .map(|&[center, satellite]| (satellite, center))
-        .collect::<HashMap<_, _>>();
+fn part1(pairs: &[[&str; 2]], orbits: &HashMap<&str, &str>) -> usize {
     let mut distances = HashMap::new();
     distances.insert("COM", 0);
     pairs
@@ -52,11 +52,7 @@ fn path<'a>(satellite: &'a str, orbits: &HashMap<&'a str, &'a str>) -> Vec<&'a s
     p
 }
 
-fn part2(pairs: &[[&str; 2]]) -> usize {
-    let orbits = pairs
-        .iter()
-        .map(|&[center, satellite]| (satellite, center))
-        .collect::<HashMap<_, _>>();
+fn part2(orbits: &HashMap<&str, &str>) -> usize {
     let path_san = path("SAN", &orbits);
     let path_you = path("YOU", &orbits);
 
