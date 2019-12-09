@@ -4,7 +4,7 @@ pub struct Program {
     data: Vec<Word>,
     input: Vec<Word>,
     output: Vec<Word>,
-    pc: usize,
+    pc: Word,
     rel_base: Word,
 }
 
@@ -46,7 +46,7 @@ impl Program {
     }
 
     pub fn exec(&mut self) {
-        while self.pc < self.data.len() {
+        loop {
             let opcode = Opcode::decode(self.read(self.pc));
             match opcode {
                 Opcode::Add { src1, src2, dst } => {
@@ -63,14 +63,14 @@ impl Program {
                 Opcode::JmpT { src1, src2 } => {
                     if self.param(src1, 1) != 0 {
                         debug_assert!(self.param(src2, 2) >= 0);
-                        self.pc = self.param(src2, 2) as usize;
+                        self.pc = self.param(src2, 2);
                         continue;
                     }
                 }
                 Opcode::JmpF { src1, src2 } => {
                     if self.param(src1, 1) == 0 {
                         debug_assert!(self.param(src2, 2) >= 0);
-                        self.pc = self.param(src2, 2) as usize;
+                        self.pc = self.param(src2, 2);
                         continue;
                     }
                 }
@@ -102,14 +102,15 @@ impl Program {
         }
     }
 
-    fn read(&mut self, addr: usize) -> Word {
+    fn read(&mut self, addr: Word) -> Word {
+        let addr = addr as usize;
         if addr >= self.data.len() {
             self.data.resize(addr + 1, 0)
         }
         self.data[addr]
     }
 
-    fn param_out(&mut self, mode: Param, offset: usize) -> &mut Word {
+    fn param_out(&mut self, mode: Param, offset: Word) -> &mut Word {
         let param = self.read(self.pc + offset);
         let addr = match mode {
             Param::Addr => param as usize,
@@ -123,12 +124,12 @@ impl Program {
         &mut self.data[addr]
     }
 
-    fn param(&mut self, mode: Param, offset: usize) -> Word {
+    fn param(&mut self, mode: Param, offset: Word) -> Word {
         let param = self.read(self.pc + offset);
         match mode {
-            Param::Addr => self.read(param as usize),
+            Param::Addr => self.read(param),
             Param::Imm => param,
-            Param::Rel => self.read((self.rel_base + param) as usize),
+            Param::Rel => self.read(self.rel_base + param),
         }
     }
 }
@@ -194,7 +195,7 @@ enum Opcode {
 }
 
 impl Opcode {
-    fn len(&self) -> usize {
+    fn len(&self) -> Word {
         match *self {
             Opcode::Add { .. } | Opcode::Mul { .. } => 4,
             Opcode::In { .. } | Opcode::Out { .. } => 2,
