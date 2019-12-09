@@ -47,49 +47,49 @@ impl Program {
 
     pub fn exec(&mut self) {
         loop {
-            let opcode = Opcode::decode(self.read(self.pc));
+            let opcode = self.get_opcode();
             match opcode {
-                Opcode::Add { src1, src2, dst } => {
-                    *self.param_out(dst, 3) = self.param(src1, 1) + self.param(src2, 2);
+                Opcode::Add => {
+                    *self.param_out(3) = self.param_in(1) + self.param_in(2);
                 }
-                Opcode::Mul { src1, src2, dst } => {
-                    *self.param_out(dst, 3) = self.param(src1, 1) * self.param(src2, 2);
+                Opcode::Mul => {
+                    *self.param_out(3) = self.param_in(1) * self.param_in(2);
                 }
-                Opcode::In { dst } => *self.param_out(dst, 1) = self.input.pop().unwrap(),
-                Opcode::Out { src } => {
-                    let val = self.param(src, 1);
+                Opcode::In => *self.param_out(1) = self.input.pop().unwrap(),
+                Opcode::Out => {
+                    let val = self.param_in(1);
                     self.output.push(val)
                 }
-                Opcode::JmpT { src1, src2 } => {
-                    if self.param(src1, 1) != 0 {
-                        debug_assert!(self.param(src2, 2) >= 0);
-                        self.pc = self.param(src2, 2);
+                Opcode::JmpT => {
+                    if self.param_in(1) != 0 {
+                        debug_assert!(self.param_in(2) >= 0);
+                        self.pc = self.param_in(2);
                         continue;
                     }
                 }
-                Opcode::JmpF { src1, src2 } => {
-                    if self.param(src1, 1) == 0 {
-                        debug_assert!(self.param(src2, 2) >= 0);
-                        self.pc = self.param(src2, 2);
+                Opcode::JmpF => {
+                    if self.param_in(1) == 0 {
+                        debug_assert!(self.param_in(2) >= 0);
+                        self.pc = self.param_in(2);
                         continue;
                     }
                 }
-                Opcode::Lt { src1, src2, dst } => {
-                    *self.param_out(dst, 3) = if self.param(src1, 1) < self.param(src2, 2) {
+                Opcode::Lt => {
+                    *self.param_out(3) = if self.param_in(1) < self.param_in(2) {
                         1
                     } else {
                         0
                     }
                 }
-                Opcode::Eq { src1, src2, dst } => {
-                    *self.param_out(dst, 3) = if self.param(src1, 1) == self.param(src2, 2) {
+                Opcode::Eq => {
+                    *self.param_out(3) = if self.param_in(1) == self.param_in(2) {
                         1
                     } else {
                         0
                     }
                 }
-                Opcode::SetRel { src } => {
-                    self.rel_base += self.param(src, 1);
+                Opcode::SetRel => {
+                    self.rel_base += self.param_in(1);
                 }
                 Opcode::End => {}
             }
@@ -110,9 +110,18 @@ impl Program {
         self.data[addr]
     }
 
-    fn param_out(&mut self, mode: Param, offset: Word) -> &mut Word {
-        let param = self.read(self.pc + offset);
-        let addr = match mode {
+    fn get_opcode(&self) -> Opcode {
+        get_digits_base10(self.data[self.pc as usize], 0, 2).into()
+    }
+
+    fn get_param_mode(&self, offset: u32) -> Param {
+        get_digits_base10(self.data[self.pc as usize], 2 - 1 + offset, 1).into()
+    }
+
+    fn param_out(&mut self, offset: u32) -> &mut Word {
+        let param = self.read(self.pc + offset as Word);
+
+        let addr = match self.get_param_mode(offset) {
             Param::Addr => param as usize,
             Param::Rel => (self.rel_base + param) as usize,
             Param::Imm => panic!("Invalid destination parameter"),
@@ -124,9 +133,10 @@ impl Program {
         &mut self.data[addr]
     }
 
-    fn param(&mut self, mode: Param, offset: Word) -> Word {
-        let param = self.read(self.pc + offset);
-        match mode {
+    fn param_in(&mut self, offset: u32) -> Word {
+        let param = self.read(self.pc + offset as Word);
+
+        match self.get_param_mode(offset) {
             Param::Addr => self.read(param),
             Param::Imm => param,
             Param::Rel => self.read(self.rel_base + param),
@@ -154,97 +164,43 @@ impl From<Word> for Param {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Opcode {
-    Add {
-        src1: Param,
-        src2: Param,
-        dst: Param,
-    },
-    Mul {
-        src1: Param,
-        src2: Param,
-        dst: Param,
-    },
-    In {
-        dst: Param,
-    },
-    Out {
-        src: Param,
-    },
-    JmpT {
-        src1: Param,
-        src2: Param,
-    },
-    JmpF {
-        src1: Param,
-        src2: Param,
-    },
-    Lt {
-        src1: Param,
-        src2: Param,
-        dst: Param,
-    },
-    Eq {
-        src1: Param,
-        src2: Param,
-        dst: Param,
-    },
-    SetRel {
-        src: Param,
-    },
+    Add,
+    Mul,
+    In,
+    Out,
+    JmpT,
+    JmpF,
+    Lt,
+    Eq,
+    SetRel,
     End,
 }
 
 impl Opcode {
     fn len(&self) -> Word {
         match *self {
-            Opcode::Add { .. } | Opcode::Mul { .. } => 4,
-            Opcode::In { .. } | Opcode::Out { .. } => 2,
-            Opcode::JmpT { .. } | Opcode::JmpF { .. } => 3,
-            Opcode::Lt { .. } | Opcode::Eq { .. } => 4,
-            Opcode::SetRel { .. } => 2,
+            Opcode::Add  | Opcode::Mul  => 4,
+            Opcode::In  | Opcode::Out  => 2,
+            Opcode::JmpT | Opcode::JmpF  => 3,
+            Opcode::Lt  | Opcode::Eq  => 4,
+            Opcode::SetRel  => 2,
             Opcode::End => 1,
         }
     }
+}
 
-    fn decode(input: Word) -> Opcode {
-        let opcode = get_digits_base10(input, 0, 2);
-
-        let param1 = || get_digits_base10(input, 2, 1).into();
-        let param2 = || get_digits_base10(input, 3, 1).into();
-        let param3 = || get_digits_base10(input, 4, 1).into();
-
-        match opcode {
-            01 => Opcode::Add {
-                src1: param1(),
-                src2: param2(),
-                dst: param3(),
-            },
-            02 => Opcode::Mul {
-                src1: param1(),
-                src2: param2(),
-                dst: param3(),
-            },
-            03 => Opcode::In { dst: param1() },
-            04 => Opcode::Out { src: param1() },
-            05 => Opcode::JmpT {
-                src1: param1(),
-                src2: param2(),
-            },
-            06 => Opcode::JmpF {
-                src1: param1(),
-                src2: param2(),
-            },
-            07 => Opcode::Lt {
-                src1: param1(),
-                src2: param2(),
-                dst: param3(),
-            },
-            08 => Opcode::Eq {
-                src1: param1(),
-                src2: param2(),
-                dst: param3(),
-            },
-            09 => Opcode::SetRel { src: param1() },
+impl From<Word> for Opcode {
+    fn from(word: Word) -> Opcode {
+        match word {
+            01 => Opcode::Add,
+            02 => Opcode::Mul,
+            03 => Opcode::In,
+            04 => Opcode::Out,
+            05 => Opcode::JmpT,
+            06 => Opcode::JmpF,
+            07 => Opcode::Lt,
+            08 => Opcode::Eq,
+            09 => Opcode::SetRel,
             99 => Opcode::End,
             op => panic!("invalid opcode: {}", op),
         }
