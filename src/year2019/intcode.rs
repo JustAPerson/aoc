@@ -75,18 +75,10 @@ impl Program {
                     }
                 }
                 Opcode::Lt => {
-                    *self.param_out(3) = if self.param_in(1) < self.param_in(2) {
-                        1
-                    } else {
-                        0
-                    }
+                    *self.param_out(3) = (self.param_in(1) < self.param_in(2)) as Word
                 }
                 Opcode::Eq => {
-                    *self.param_out(3) = if self.param_in(1) == self.param_in(2) {
-                        1
-                    } else {
-                        0
-                    }
+                    *self.param_out(3) = (self.param_in(1) == self.param_in(2)) as Word
                 }
                 Opcode::SetRel => {
                     self.rel_base += self.param_in(1);
