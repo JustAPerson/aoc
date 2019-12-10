@@ -7,6 +7,7 @@ fn main() {
     year2019::day04::run();
     year2019::day05::run();
     year2019::day06::run();
+    year2019::day07::run();
     year2019::day08::run();
     year2019::day09::run();
 }
