@@ -1,8 +1,10 @@
+use std::collections::VecDeque;
+
 pub type Word = isize;
 
 pub struct Program {
     data: Vec<Word>,
-    input: Vec<Word>,
+    input: VecDeque<Word>,
     output: Vec<Word>,
     pc: Word,
     rel_base: Word,
@@ -12,7 +14,7 @@ impl Program {
     pub fn new() -> Self {
         Self {
             data: Vec::new(),
-            input: Vec::new(),
+            input: VecDeque::new(),
             output: Vec::new(),
             pc: 0,
             rel_base: 0,
@@ -36,16 +38,18 @@ impl Program {
     }
 
     pub fn set_input(&mut self, input: &[Word]) {
-        self.input.clear();
-        self.input.extend_from_slice(input);
-        self.input.reverse(); // so we can easily pop elements in forward order
+        self.input = input.iter().cloned().collect();
+    }
+
+    pub fn get_input(&mut self) -> &mut VecDeque<Word> {
+        &mut self.input
     }
 
     pub fn get_output(&self) -> &[Word] {
         &self.output
     }
 
-    pub fn exec(&mut self) {
+    pub fn exec(&mut self) -> bool {
         loop {
             let opcode = self.get_opcode();
             match opcode {
@@ -55,7 +59,13 @@ impl Program {
                 Opcode::Mul => {
                     *self.param_out(3) = self.param_in(1) * self.param_in(2);
                 }
-                Opcode::In => *self.param_out(1) = self.input.pop().unwrap(),
+                Opcode::In => {
+                    if self.input.is_empty() {
+                        // yield until more input
+                        return false;
+                    }
+                    *self.param_out(1) = self.input.pop_front().unwrap()
+                }
                 Opcode::Out => {
                     let val = self.param_in(1);
                     self.output.push(val)
@@ -85,7 +95,7 @@ impl Program {
             self.pc += opcode.len();
 
             if opcode == Opcode::End {
-                break;
+                return true;
             }
         }
     }
