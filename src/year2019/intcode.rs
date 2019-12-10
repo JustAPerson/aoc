@@ -74,12 +74,8 @@ impl Program {
                         continue;
                     }
                 }
-                Opcode::Lt => {
-                    *self.param_out(3) = (self.param_in(1) < self.param_in(2)) as Word
-                }
-                Opcode::Eq => {
-                    *self.param_out(3) = (self.param_in(1) == self.param_in(2)) as Word
-                }
+                Opcode::Lt => *self.param_out(3) = (self.param_in(1) < self.param_in(2)) as Word,
+                Opcode::Eq => *self.param_out(3) = (self.param_in(1) == self.param_in(2)) as Word,
                 Opcode::SetRel => {
                     self.rel_base += self.param_in(1);
                 }
@@ -171,11 +167,11 @@ enum Opcode {
 impl Opcode {
     fn len(&self) -> Word {
         match *self {
-            Opcode::Add  | Opcode::Mul  => 4,
-            Opcode::In  | Opcode::Out  => 2,
-            Opcode::JmpT | Opcode::JmpF  => 3,
-            Opcode::Lt  | Opcode::Eq  => 4,
-            Opcode::SetRel  => 2,
+            Opcode::Add | Opcode::Mul => 4,
+            Opcode::In | Opcode::Out => 2,
+            Opcode::JmpT | Opcode::JmpF => 3,
+            Opcode::Lt | Opcode::Eq => 4,
+            Opcode::SetRel => 2,
             Opcode::End => 1,
         }
     }
