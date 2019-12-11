@@ -54,8 +54,8 @@ impl Program {
         &mut self.input
     }
 
-    pub fn get_output(&self) -> &[Word] {
-        &self.output
+    pub fn get_output(&mut self) -> &mut Vec<Word> {
+        &mut self.output
     }
 
     pub fn exec(&mut self) -> bool {
