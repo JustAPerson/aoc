@@ -3,7 +3,7 @@ use std::collections::VecDeque;
 pub type Word = isize;
 
 #[derive(Clone, Debug)]
-pub struct Program {
+pub struct Computer {
     data: Vec<Word>,
     input: VecDeque<Word>,
     output: Vec<Word>,
@@ -11,7 +11,7 @@ pub struct Program {
     rel_base: Word,
 }
 
-impl Program {
+impl Computer {
     pub fn new() -> Self {
         Self {
             data: Vec::new(),
@@ -22,15 +22,15 @@ impl Program {
         }
     }
 
-    pub fn with_program(code: &[Word], input: &[Word]) -> Program {
-        let mut program = Program::new();
+    pub fn with_program(code: &[Word], input: &[Word]) -> Self {
+        let mut program = Computer::new();
         program.reset(code);
         program.set_input(input);
         program
     }
 
     pub fn run_program(code: &[Word], input: &[Word]) -> Vec<Word> {
-        let mut program = Program::new();
+        let mut program = Computer::new();
         program.reset(code);
         program.set_input(input);
         let done = program.exec();

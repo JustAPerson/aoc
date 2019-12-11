@@ -1,5 +1,5 @@
-use crate::year2019::intcode::{Program, Word};
 use std::str::FromStr;
+use crate::year2019::intcode::{Computer, Word};
 
 pub fn run() {
     let code: Vec<Word> = std::fs::read_to_string("inputs/year2019/day07.txt")
@@ -37,7 +37,7 @@ fn part1(code: &[Word]) -> Word {
         .into_iter()
         .map(|phases| {
             phases.into_iter().fold(0 as Word, |input, phase| {
-                Program::run_program(code, &[phase, input])[0]
+                Computer::run_program(code, &[phase, input])[0]
             })
         })
         .max()
@@ -48,16 +48,16 @@ fn part2(code: &[Word]) -> Word {
     permutations(&[5 as Word, 6, 7, 8, 9])
         .into_iter()
         .map(|phases| {
-            let mut programs = phases
+            let mut computers = phases
                 .into_iter()
-                .map(|phase| Program::with_program(code, &[phase]))
+                .map(|phase| Computer::with_program(code, &[phase]))
                 .collect::<Vec<_>>();
             let mut input = 0;
             loop {
                 for i in 0..5 {
-                    programs[i].get_input().push_back(input);
-                    let done = programs[i].exec();
-                    input = *programs[i].get_output().last().unwrap();
+                    computers[i].get_input().push_back(input);
+                    let done = computers[i].exec();
+                    input = *computers[i].get_output().last().unwrap();
                     if i == 4 && done {
                         return input;
                     }

@@ -1,5 +1,5 @@
-use crate::year2019::intcode::{Program, Word};
 use std::str::FromStr;
+use crate::year2019::intcode::{Computer, Word};
 
 pub fn run() {
     let input: Vec<Word> = std::fs::read_to_string("inputs/year2019/day05.txt")
@@ -17,24 +17,24 @@ pub fn run() {
 }
 
 fn part1(input: &Vec<Word>) -> Word {
-    let mut program = Program::new();
-    program.reset(input);
-    program.set_input(&[1]);
-    program.exec();
+    let mut computer = Computer::new();
+    computer.reset(input);
+    computer.set_input(&[1]);
+    computer.exec();
 
-    let (last, others) = program.get_output().split_last().unwrap();
+    let (last, others) = computer.get_output().split_last().unwrap();
     assert!(others.iter().all(|t| *t == 0));
 
     *last
 }
 
 fn part2(input: &Vec<Word>) -> Word {
-    let mut program = Program::new();
-    program.reset(input);
-    program.set_input(&[5]);
-    program.exec();
+    let mut computer = Computer::new();
+    computer.reset(input);
+    computer.set_input(&[5]);
+    computer.exec();
 
-    let output = program.get_output();
+    let output = computer.get_output();
     assert_eq!(output.len(), 1);
 
     output[0]
@@ -43,11 +43,11 @@ fn part2(input: &Vec<Word>) -> Word {
 #[test]
 fn test_part2() {
     fn test(input: Word, list: &[Word]) -> Word {
-        let mut program = Program::new();
-        program.reset(list);
-        program.set_input(&[input]);
-        program.exec();
-        *program.get_output().last().unwrap()
+        let mut computer = Computer::new();
+        computer.reset(list);
+        computer.set_input(&[input]);
+        computer.exec();
+        *computer.get_output().last().unwrap()
     }
     let pos_eq_8 = &[3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8];
     assert_eq!(test(8, pos_eq_8), 1);

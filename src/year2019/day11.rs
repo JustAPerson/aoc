@@ -1,5 +1,5 @@
-use crate::year2019::intcode::{Program, Word};
 use std::str::FromStr;
+use crate::year2019::intcode::{Computer, Word};
 
 pub fn run() {
     // refactor all this into a method in Program or intcode
@@ -19,20 +19,20 @@ type Pos = (isize, isize);
 static DIRS: [Pos; 4] = [(0, 1), (1, 0), (0, -1), (-1, 0)];
 
 fn paint(code: &[Word], start: Word) -> std::collections::HashMap<Pos, Word> {
-    let mut program = Program::with_program(code, &[]);
+    let mut computer = Computer::with_program(code, &[]);
     let mut hull = std::collections::HashMap::new();
-    hull.insert((0,0), start);
+    hull.insert((0, 0), start);
 
     let mut pos = (0, 0);
     let mut dir = 0isize;
     let mut done = false;
     while !done {
         let current: &mut Word = hull.entry(pos).or_insert(0);
-        program.get_input().push_back(*current);
-        done = program.exec();
+        computer.get_input().push_back(*current);
+        done = computer.exec();
 
-        let turn = program.get_output().pop().unwrap();
-        let paint = program.get_output().pop().unwrap();
+        let turn = computer.get_output().pop().unwrap();
+        let paint = computer.get_output().pop().unwrap();
         *current = paint;
 
         dir = (4 + dir + if turn == 1 { 1 } else { -1 }) % 4;
