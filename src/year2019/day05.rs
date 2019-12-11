@@ -1,17 +1,12 @@
-use std::str::FromStr;
 use crate::year2019::intcode::{Computer, Word};
 
 pub fn run() {
-    let input: Vec<Word> = std::fs::read_to_string("inputs/year2019/day05.txt")
-        .unwrap()
-        .trim()
-        .split(",")
-        .map(Word::from_str)
-        .collect::<Result<_, _>>()
+    let code = std::fs::read_to_string("inputs/year2019/day05.txt")
+        .map(Computer::decode)
         .unwrap();
 
-    let answer1 = part1(&input);
-    let answer2 = part2(&input);
+    let answer1 = part1(&code);
+    let answer2 = part2(&code);
     println!("year2019 day05 part1 {}", answer1);
     println!("year2019 day05 part2 {}", answer2);
 }

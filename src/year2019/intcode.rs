@@ -12,6 +12,17 @@ pub struct Computer {
 }
 
 impl Computer {
+    pub fn decode<T: AsRef<str>>(input: T) -> Vec<Word> {
+        use std::str::FromStr;
+        input
+            .as_ref()
+            .trim()
+            .split(",")
+            .map(Word::from_str)
+            .collect::<Result<Vec<Word>, _>>()
+            .unwrap()
+    }
+
     pub fn new() -> Self {
         Self {
             data: Vec::new(),

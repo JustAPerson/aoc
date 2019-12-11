@@ -1,14 +1,8 @@
-use std::str::FromStr;
 use crate::year2019::intcode::{Computer, Word};
 
 pub fn run() {
-    // refactor all this into a method in Program or intcode
     let code = std::fs::read_to_string("inputs/year2019/day11.txt")
-        .unwrap()
-        .trim()
-        .split(",")
-        .map(Word::from_str)
-        .collect::<Result<Vec<Word>, _>>()
+        .map(Computer::decode)
         .unwrap();
 
     println!("year2019 day11 part1 {}", part1(&code));
